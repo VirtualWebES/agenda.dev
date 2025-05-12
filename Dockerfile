@@ -1,5 +1,5 @@
-# Use the official Bun image
-FROM oven/bun:1 as base
+# Use the official Bun image with a specific version
+FROM oven/bun:1.0.25 as base
 
 # Set working directory
 WORKDIR /app
@@ -8,11 +8,15 @@ WORKDIR /app
 FROM base AS deps
 RUN apt-get update && apt-get install -y \
     git \
+    curl \
+    build-essential \
+    python3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+RUN bun --version && \
+    bun install --frozen-lockfile --verbose --no-cache
 
 # Rebuild the source code only when needed
 FROM base AS builder

@@ -1,0 +1,1 @@
+ALTER TABLE "user_settings" ADD COLUMN "show_input_at_bottom" boolean DEFAULT false NOT NULL;

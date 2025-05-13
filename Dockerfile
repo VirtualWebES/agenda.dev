@@ -65,8 +65,8 @@ RUN echo "=== System Information ===" && \
     npm --version && \
     echo "\n=== Package.json Contents ===" && \
     cat package.json && \
-    echo "\n=== Node Modules Contents ===" && \
-    ls -la node_modules && \
+    echo "\n=== Next.js Config ===" && \
+    cat next.config.mjs && \
     echo "\n=== Environment Variables ===" && \
     env | sort
 
@@ -82,11 +82,19 @@ RUN echo "\n=== Starting Build ===" && \
      ls -la .next 2>/dev/null || echo "No .next directory found" && \
      exit 1)
 
-# Verify build output
+# Verify build output and create standalone directory if it doesn't exist
 RUN echo "\n=== Verifying Build Output ===" && \
     ls -la .next && \
     echo "\n=== Standalone Directory ===" && \
-    ls -la .next/standalone 2>/dev/null || echo "Standalone directory not found" && \
+    if [ ! -d ".next/standalone" ]; then \
+        echo "Standalone directory not found, creating it..." && \
+        mkdir -p .next/standalone && \
+        cp -r .next/server .next/standalone/ && \
+        cp -r .next/static .next/standalone/ && \
+        cp package.json .next/standalone/ && \
+        cp next.config.mjs .next/standalone/; \
+    fi && \
+    ls -la .next/standalone 2>/dev/null || echo "Failed to create standalone directory" && \
     echo "\n=== Static Directory ===" && \
     ls -la .next/static 2>/dev/null || echo "Static directory not found"
 

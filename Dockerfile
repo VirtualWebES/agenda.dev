@@ -45,6 +45,17 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Set build-time environment variables
+ENV NODE_ENV production
+ENV DATABASE_URL "postgres://postgres:postgres@localhost:5432/postgres"
+ENV NEXT_PUBLIC_APP_URL "http://localhost:3000"
+ENV AUTH_SECRET "your-auth-secret"
+ENV POSTHOG_KEY "your-posthog-key"
+ENV POSTHOG_HOST "https://us.i.posthog.com"
+ENV STRIPE_SECRET_KEY "your-stripe-secret-key"
+ENV STRIPE_WEBHOOK_SECRET "your-stripe-webhook-secret"
+ENV RESEND_API_KEY "your-resend-api-key"
+
 # Debug information
 RUN echo "=== System Information ===" && \
     ls -la && \
@@ -63,7 +74,7 @@ RUN echo "=== System Information ===" && \
 
 # Build the application with detailed error output
 RUN echo "\n=== Starting Build ===" && \
-    NODE_ENV=production /root/.bun/bin/bun run build 2>&1 | tee build.log || \
+    /root/.bun/bin/bun run build 2>&1 | tee build.log || \
     (echo "Build failed with exit code $?" && \
      echo "\n=== Build Log Contents ===" && \
      cat build.log && \

@@ -63,12 +63,14 @@ RUN echo "=== System Information ===" && \
 
 # Build the application with detailed error output
 RUN echo "\n=== Starting Build ===" && \
-    NODE_ENV=production /root/.bun/bin/bun run build --verbose || \
+    NODE_ENV=production /root/.bun/bin/bun run build --verbose 2>&1 | tee build.log || \
     (echo "Build failed with exit code $?" && \
-     echo "\n=== Build Error Details ===" && \
-     cat .next/build-error.log 2>/dev/null || echo "No build error log found" && \
+     echo "\n=== Build Log Contents ===" && \
+     cat build.log && \
      echo "\n=== Next.js Build Cache ===" && \
      ls -la .next/cache 2>/dev/null || echo "No build cache found" && \
+     echo "\n=== Next.js Build Directory ===" && \
+     ls -la .next 2>/dev/null || echo "No .next directory found" && \
      exit 1)
 
 # Production image, copy all the files and run next

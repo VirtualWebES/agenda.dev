@@ -14,9 +14,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
-COPY package.json bun.lock ./
+COPY package.json ./
 RUN bun --version && \
-    bun install --frozen-lockfile --verbose --no-cache
+    bun install --no-cache
 
 # Rebuild the source code only when needed
 FROM base AS builder

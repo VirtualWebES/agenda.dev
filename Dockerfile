@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y \
     && echo 'export BUN_INSTALL="$HOME/.bun"' >> /root/.bashrc \
     && echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> /root/.bashrc \
     && export BUN_INSTALL="$HOME/.bun" \
-    && export PATH="$BUN_INSTALL/bin:$PATH"
+    && export PATH="$BUN_INSTALL/bin:$PATH" \
+    && ln -s /root/.bun/bin/bun /usr/local/bin/bun
 
 # Set working directory
 WORKDIR /app
@@ -30,9 +31,9 @@ ENV BUN_INSTALL="/root/.bun"
 ENV PATH="/root/.bun/bin:${PATH}"
 
 # Install dependencies with specific esbuild version
-RUN /root/.bun/bin/bun install --no-cache && \
-    /root/.bun/bin/bun remove esbuild && \
-    /root/.bun/bin/bun add esbuild@0.25.0
+RUN bun install --no-cache && \
+    bun remove esbuild && \
+    bun add esbuild@0.25.0
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -60,7 +61,7 @@ RUN echo "=== System Information ===" && \
     echo "\n=== Node Information ===" && \
     node --version && \
     echo "\n=== Bun Information ===" && \
-    /root/.bun/bin/bun --version && \
+    bun --version && \
     echo "\n=== NPM Information ===" && \
     npm --version && \
     echo "\n=== Package.json Contents ===" && \
@@ -72,7 +73,7 @@ RUN echo "=== System Information ===" && \
 
 # Build the application with detailed error output
 RUN echo "\n=== Starting Build ===" && \
-    /root/.bun/bin/bun run build 2>&1 | tee build.log || \
+    bun run build 2>&1 | tee build.log || \
     (echo "Build failed with exit code $?" && \
      echo "\n=== Build Log Contents ===" && \
      cat build.log && \
@@ -128,4 +129,4 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["/root/.bun/bin/bun", "server.js"] 
+CMD ["bun", "server.js"] 

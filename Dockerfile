@@ -1,17 +1,5 @@
-# Use Node.js as base image
-FROM node:20-slim as base
-
-# Install Bun
-RUN apt-get update && apt-get install -y \
-    curl \
-    unzip \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL https://bun.sh/install | bash \
-    && echo 'export BUN_INSTALL="$HOME/.bun"' >> /root/.bashrc \
-    && echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> /root/.bashrc \
-    && export BUN_INSTALL="$HOME/.bun" \
-    && export PATH="$BUN_INSTALL/bin:$PATH" \
-    && ln -s /root/.bun/bin/bun /usr/local/bin/bun
+# Use Bun as base image
+FROM oven/bun:1.0.25 as base
 
 # Set working directory
 WORKDIR /app
@@ -27,8 +15,6 @@ RUN apt-get update && apt-get install -y \
 
 # Install dependencies
 COPY package.json ./
-ENV BUN_INSTALL="/root/.bun"
-ENV PATH="/root/.bun/bin:${PATH}"
 
 # Install dependencies with specific esbuild version
 RUN bun install --no-cache && \
@@ -105,8 +91,6 @@ WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
-ENV BUN_INSTALL="/root/.bun"
-ENV PATH="/root/.bun/bin:${PATH}"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

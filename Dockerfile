@@ -11,12 +11,14 @@ RUN apt-get update && apt-get install -y \
     curl \
     build-essential \
     python3 \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
 COPY package.json ./
 RUN bun --version && \
-    bun install --no-cache
+    bun install --no-cache && \
+    bun add esbuild@0.25.0
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -29,7 +31,15 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN bun run build
+# Add build debugging
+RUN ls -la && \
+    echo "Node version:" && node --version && \
+    echo "Bun version:" && bun --version && \
+    echo "NPM version:" && npm --version && \
+    echo "Contents of package.json:" && cat package.json && \
+    echo "Contents of node_modules:" && ls -la node_modules && \
+    echo "Running build..." && \
+    NODE_ENV=production bun run build
 
 # Production image, copy all the files and run next
 FROM base AS runner

@@ -32,10 +32,14 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Install Bun in builder stage
+# Install Bun and required dependencies in builder stage
 RUN apt-get update && apt-get install -y \
     curl \
     unzip \
+    git \
+    build-essential \
+    python3 \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL https://bun.sh/install | bash \
     && export BUN_INSTALL="$HOME/.bun" \
@@ -54,8 +58,31 @@ ENV STRIPE_WEBHOOK_SECRET "your-stripe-webhook-secret"
 ENV STRIPE_PRO_PRICE_ID "your-stripe-price-id"
 ENV RESEND_API_KEY "your-resend-api-key"
 
-# Build the application
-RUN $HOME/.bun/bin/bun run build
+# Debug information
+RUN echo "=== System Information ===" && \
+    ls -la && \
+    echo "\n=== Node Information ===" && \
+    node --version && \
+    echo "\n=== Bun Information ===" && \
+    $HOME/.bun/bin/bun --version && \
+    echo "\n=== Package.json Contents ===" && \
+    cat package.json && \
+    echo "\n=== Next.js Config ===" && \
+    cat next.config.mjs && \
+    echo "\n=== Environment Variables ===" && \
+    env | sort
+
+# Build the application with detailed error output
+RUN echo "\n=== Starting Build ===" && \
+    $HOME/.bun/bin/bun run build 2>&1 | tee build.log || \
+    (echo "Build failed with exit code $?" && \
+     echo "\n=== Build Log Contents ===" && \
+     cat build.log && \
+     echo "\n=== Next.js Build Cache ===" && \
+     ls -la .next/cache 2>/dev/null || echo "No build cache found" && \
+     echo "\n=== Next.js Build Directory ===" && \
+     ls -la .next 2>/dev/null || echo "No .next directory found" && \
+     exit 1)
 
 # Verify build output and create standalone directory if it doesn't exist
 RUN if [ ! -d ".next/standalone" ]; then \

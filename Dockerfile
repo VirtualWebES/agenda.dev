@@ -1,5 +1,5 @@
-# Use Node.js as base image
-FROM node:20-slim as base
+# Use Bun as base image
+FROM oven/bun:1.0.25 as base
 
 # Set working directory
 WORKDIR /app
@@ -11,15 +11,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     python3 \
     pkg-config \
-    curl \
-    unzip \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL https://bun.sh/install | bash \
-    && echo 'export BUN_INSTALL="/root/.bun"' >> /root/.bashrc \
-    && echo 'export PATH="/root/.bun/bin:$PATH"' >> /root/.bashrc
-
-ENV BUN_INSTALL="/root/.bun"
-ENV PATH="/root/.bun/bin:${PATH}"
+    && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
 COPY package.json ./
@@ -35,21 +27,13 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Install Bun and required dependencies in builder stage
+# Install required dependencies in builder stage
 RUN apt-get update && apt-get install -y \
-    curl \
-    unzip \
     git \
     build-essential \
     python3 \
     pkg-config \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL https://bun.sh/install | bash \
-    && echo 'export BUN_INSTALL="/root/.bun"' >> /root/.bashrc \
-    && echo 'export PATH="/root/.bun/bin:$PATH"' >> /root/.bashrc
-
-ENV BUN_INSTALL="/root/.bun"
-ENV PATH="/root/.bun/bin:${PATH}"
+    && rm -rf /var/lib/apt/lists/*
 
 # Next.js collects completely anonymous telemetry data about general usage.
 ENV NEXT_TELEMETRY_DISABLED 1
@@ -107,18 +91,6 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Install Bun in runner stage
-RUN apt-get update && apt-get install -y \
-    curl \
-    unzip \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL https://bun.sh/install | bash \
-    && echo 'export BUN_INSTALL="/root/.bun"' >> /root/.bashrc \
-    && echo 'export PATH="/root/.bun/bin:$PATH"' >> /root/.bashrc
-
-ENV BUN_INSTALL="/root/.bun"
-ENV PATH="/root/.bun/bin:${PATH}"
-
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -139,4 +111,4 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["/root/.bun/bin/bun", "server.js"] 
+CMD ["bun", "server.js"] 

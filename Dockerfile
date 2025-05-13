@@ -63,7 +63,7 @@ RUN echo "=== System Information ===" && \
 
 # Build the application with detailed error output
 RUN echo "\n=== Starting Build ===" && \
-    NODE_ENV=production /root/.bun/bin/bun run build --verbose 2>&1 | tee build.log || \
+    NODE_ENV=production /root/.bun/bin/bun run build 2>&1 | tee build.log || \
     (echo "Build failed with exit code $?" && \
      echo "\n=== Build Log Contents ===" && \
      cat build.log && \

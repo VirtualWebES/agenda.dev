@@ -1,5 +1,12 @@
-# Use the official Bun image with a specific version
-FROM oven/bun:1.0.25 as base
+# Use Node.js as base image
+FROM node:20-slim as base
+
+# Install Bun
+RUN apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL https://bun.sh/install | bash
 
 # Set working directory
 WORKDIR /app
@@ -8,7 +15,6 @@ WORKDIR /app
 FROM base AS deps
 RUN apt-get update && apt-get install -y \
     git \
-    curl \
     build-essential \
     python3 \
     pkg-config \

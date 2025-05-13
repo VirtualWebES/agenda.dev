@@ -42,18 +42,16 @@ COPY . .
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Set build-time environment variables
 ENV NODE_ENV production
 ENV DATABASE_URL "postgres://postgres:postgres@localhost:5432/postgres"
 ENV NEXT_PUBLIC_APP_URL "http://localhost:3000"
-ENV AUTH_SECRET "your-auth-secret"
-ENV POSTHOG_KEY "your-posthog-key"
-ENV POSTHOG_HOST "https://us.i.posthog.com"
+ENV BETTER_AUTH_SECRET "your-auth-secret"
 ENV STRIPE_SECRET_KEY "your-stripe-secret-key"
 ENV STRIPE_WEBHOOK_SECRET "your-stripe-webhook-secret"
+ENV STRIPE_PRO_PRICE_ID "your-stripe-price-id"
 ENV RESEND_API_KEY "your-resend-api-key"
 
 # Debug information
@@ -112,8 +110,8 @@ RUN chown -R nextjs:nodejs .next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
 USER nextjs
 

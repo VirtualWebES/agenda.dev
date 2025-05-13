@@ -28,8 +28,10 @@ RUN apt-get update && apt-get install -y \
 COPY package.json ./
 ENV BUN_INSTALL="/root/.bun"
 ENV PATH="/root/.bun/bin:${PATH}"
-RUN /root/.bun/bin/bun --version && \
-    /root/.bun/bin/bun install --no-cache && \
+
+# Install dependencies with specific esbuild version
+RUN /root/.bun/bin/bun install --no-cache && \
+    /root/.bun/bin/bun remove esbuild && \
     /root/.bun/bin/bun add esbuild@0.25.0
 
 # Rebuild the source code only when needed
@@ -43,15 +45,25 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Add build debugging
-RUN ls -la && \
-    echo "Node version:" && node --version && \
-    echo "Bun version:" && /root/.bun/bin/bun --version && \
-    echo "NPM version:" && npm --version && \
-    echo "Contents of package.json:" && cat package.json && \
-    echo "Contents of node_modules:" && ls -la node_modules && \
-    echo "Running build..." && \
-    NODE_ENV=production /root/.bun/bin/bun run build
+# Debug information
+RUN echo "=== System Information ===" && \
+    ls -la && \
+    echo "\n=== Node Information ===" && \
+    node --version && \
+    echo "\n=== Bun Information ===" && \
+    /root/.bun/bin/bun --version && \
+    echo "\n=== NPM Information ===" && \
+    npm --version && \
+    echo "\n=== Package.json Contents ===" && \
+    cat package.json && \
+    echo "\n=== Node Modules Contents ===" && \
+    ls -la node_modules && \
+    echo "\n=== Environment Variables ===" && \
+    env | sort
+
+# Build the application
+RUN echo "\n=== Starting Build ===" && \
+    NODE_ENV=production /root/.bun/bin/bun run build || (echo "Build failed with exit code $?" && exit 1)
 
 # Production image, copy all the files and run next
 FROM base AS runner

@@ -73,6 +73,14 @@ RUN echo "\n=== Starting Build ===" && \
      ls -la .next 2>/dev/null || echo "No .next directory found" && \
      exit 1)
 
+# Verify build output
+RUN echo "\n=== Verifying Build Output ===" && \
+    ls -la .next && \
+    echo "\n=== Standalone Directory ===" && \
+    ls -la .next/standalone 2>/dev/null || echo "Standalone directory not found" && \
+    echo "\n=== Static Directory ===" && \
+    ls -la .next/static 2>/dev/null || echo "Static directory not found"
+
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
@@ -88,8 +96,8 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 
 # Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+RUN mkdir -p .next/static
+RUN chown -R nextjs:nodejs .next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing

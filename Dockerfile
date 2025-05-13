@@ -15,16 +15,19 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL https://bun.sh/install | bash \
-    && export BUN_INSTALL="$HOME/.bun" \
-    && export PATH="$BUN_INSTALL/bin:$PATH"
+    && echo 'export BUN_INSTALL="/root/.bun"' >> /root/.bashrc \
+    && echo 'export PATH="/root/.bun/bin:$PATH"' >> /root/.bashrc
+
+ENV BUN_INSTALL="/root/.bun"
+ENV PATH="/root/.bun/bin:${PATH}"
 
 # Install dependencies
 COPY package.json ./
 
 # Install dependencies with specific esbuild version
-RUN $HOME/.bun/bin/bun install --no-cache && \
-    $HOME/.bun/bin/bun remove esbuild && \
-    $HOME/.bun/bin/bun add esbuild@0.25.0
+RUN bun install --no-cache && \
+    bun remove esbuild && \
+    bun add esbuild@0.25.0
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -42,8 +45,11 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL https://bun.sh/install | bash \
-    && export BUN_INSTALL="$HOME/.bun" \
-    && export PATH="$BUN_INSTALL/bin:$PATH"
+    && echo 'export BUN_INSTALL="/root/.bun"' >> /root/.bashrc \
+    && echo 'export PATH="/root/.bun/bin:$PATH"' >> /root/.bashrc
+
+ENV BUN_INSTALL="/root/.bun"
+ENV PATH="/root/.bun/bin:${PATH}"
 
 # Next.js collects completely anonymous telemetry data about general usage.
 ENV NEXT_TELEMETRY_DISABLED 1
@@ -64,7 +70,7 @@ RUN echo "=== System Information ===" && \
     echo "\n=== Node Information ===" && \
     node --version && \
     echo "\n=== Bun Information ===" && \
-    $HOME/.bun/bin/bun --version && \
+    bun --version && \
     echo "\n=== Package.json Contents ===" && \
     cat package.json && \
     echo "\n=== Next.js Config ===" && \
@@ -74,7 +80,7 @@ RUN echo "=== System Information ===" && \
 
 # Build the application with detailed error output
 RUN echo "\n=== Starting Build ===" && \
-    $HOME/.bun/bin/bun run build 2>&1 | tee build.log || \
+    bun run build 2>&1 | tee build.log || \
     (echo "Build failed with exit code $?" && \
      echo "\n=== Build Log Contents ===" && \
      cat build.log && \
@@ -107,8 +113,11 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL https://bun.sh/install | bash \
-    && export BUN_INSTALL="$HOME/.bun" \
-    && export PATH="$BUN_INSTALL/bin:$PATH"
+    && echo 'export BUN_INSTALL="/root/.bun"' >> /root/.bashrc \
+    && echo 'export PATH="/root/.bun/bin:$PATH"' >> /root/.bashrc
+
+ENV BUN_INSTALL="/root/.bun"
+ENV PATH="/root/.bun/bin:${PATH}"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -130,4 +139,4 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["$HOME/.bun/bin/bun", "server.js"] 
+CMD ["/root/.bun/bin/bun", "server.js"] 

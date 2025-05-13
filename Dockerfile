@@ -6,7 +6,11 @@ RUN apt-get update && apt-get install -y \
     curl \
     unzip \
     && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL https://bun.sh/install | bash
+    && curl -fsSL https://bun.sh/install | bash \
+    && echo 'export BUN_INSTALL="$HOME/.bun"' >> /root/.bashrc \
+    && echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> /root/.bashrc \
+    && export BUN_INSTALL="$HOME/.bun" \
+    && export PATH="$BUN_INSTALL/bin:$PATH"
 
 # Set working directory
 WORKDIR /app
@@ -22,9 +26,11 @@ RUN apt-get update && apt-get install -y \
 
 # Install dependencies
 COPY package.json ./
-RUN bun --version && \
-    bun install --no-cache && \
-    bun add esbuild@0.25.0
+ENV BUN_INSTALL="/root/.bun"
+ENV PATH="/root/.bun/bin:${PATH}"
+RUN /root/.bun/bin/bun --version && \
+    /root/.bun/bin/bun install --no-cache && \
+    /root/.bun/bin/bun add esbuild@0.25.0
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -40,12 +46,12 @@ ENV NEXT_TELEMETRY_DISABLED 1
 # Add build debugging
 RUN ls -la && \
     echo "Node version:" && node --version && \
-    echo "Bun version:" && bun --version && \
+    echo "Bun version:" && /root/.bun/bin/bun --version && \
     echo "NPM version:" && npm --version && \
     echo "Contents of package.json:" && cat package.json && \
     echo "Contents of node_modules:" && ls -la node_modules && \
     echo "Running build..." && \
-    NODE_ENV=production bun run build
+    NODE_ENV=production /root/.bun/bin/bun run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -53,6 +59,8 @@ WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV BUN_INSTALL="/root/.bun"
+ENV PATH="/root/.bun/bin:${PATH}"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -75,4 +83,4 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["bun", "server.js"] 
+CMD ["/root/.bun/bin/bun", "server.js"] 
